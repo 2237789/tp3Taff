@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
@@ -16,40 +16,56 @@ public class EscapeRoomAgent : Agent
     [SerializeField] private Material materielEchec;
     private Rigidbody rb;
     private bool porteOuverte = false;
+    Vector3 positionSortie;
+    Material matActuel;
+
+    private float lastDistanceToInterrupteur;
+    private float lastDistanceToSortie;
+
 
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody>();
         if (rb == null)
         {
-            Debug.LogError("Rigidbody manquant sur l'agent. Ajoutez un composant Rigidbody.");
+            Debug.LogError("Rigidbody manquant sur l'agent. Ajoute un composant Rigidbody.");
         }
+        positionSortie = sortieTransform.localPosition;
+        matActuel = solRenderer.material;
+
+
     }
 
     public override void OnEpisodeBegin()
     {
-        // Reset agent et éléments
+        //test 
+        lastDistanceToInterrupteur = Vector3.Distance(transform.localPosition, interrupteurTransform.localPosition);
+        lastDistanceToSortie = Vector3.Distance(transform.localPosition, sortieTransform.localPosition);
+
+        // Reset agent et Ã©lÃ©ments
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        // Utilisez des positions locales plutôt que mondiales pour être cohérent
-       // transform.localPosition = new Vector3(Random.Range(-3f, 3f), 0.5f, Random.Range(-3f, 3f));
+        
         transform.position = new Vector3(Random.Range(-1380f, -1377f), 982.5f, Random.Range(1782f, 1785f));
+        //transform.position = new Vector3(-115.1f, 98.36981f, 205.4f);
 
-       // interrupteurTransform.localPosition = new Vector3(Random.Range(-3f, 3f), 0.5f, Random.Range(-3f, 3f));
-        sortieTransform.localPosition = new Vector3(3, 0.5f, 0);
 
-        // Réinitialisation de l'état de la porte
-        porte.SetActive(true); // porte fermée
+
+        sortieTransform.localPosition = positionSortie;
+
+        // RÃ©initialisation de l'Ã©tat de la porte
+        porte.SetActive(true); // porte fermÃ©e
         porteOuverte = false;
 
-        // Réinitialisation du matériau du sol
-        if (solRenderer != null)
+        // RÃ©initialisation du matÃ©riau du sol
+       /* if (solRenderer != null)
         {
-            solRenderer.material = null; // Remettre le matériau par défaut
-        }
+            solRenderer.material =matActuel; 
+        }*/
     }
 
+    // il voit
     public override void CollectObservations(VectorSensor sensor)
     {
         // Position de l'agent
@@ -59,9 +75,9 @@ public class EscapeRoomAgent : Agent
         sensor.AddObservation(interrupteurTransform.localPosition);
 
         // Position de la sortie
-        sensor.AddObservation(sortieTransform.localPosition);
+      /*  sensor.AddObservation(sortieTransform.localPosition);
 
-        // État de la porte (1 = fermée, 0 = ouverte)
+        // Ã‰tat de la porte (1 = fermÃ©e, 0 = ouverte)
         sensor.AddObservation(porteOuverte ? 0f : 1f);
 
         // Direction vers l'interrupteur
@@ -70,38 +86,81 @@ public class EscapeRoomAgent : Agent
 
         // Direction vers la sortie
         Vector3 dirToSortie = sortieTransform.localPosition - transform.localPosition;
-        sensor.AddObservation(dirToSortie.normalized);
+        sensor.AddObservation(dirToSortie.normalized);*/
     }
 
-    public override void OnActionReceived(ActionBuffers actions)
+    //il fait
+    /*public override void OnActionReceived(ActionBuffers actions)
     {
-        // Récupérer les actions
+        // RÃ©cupÃ©rer les actions
         float moveX = actions.ContinuousActions[0];
         float moveZ = actions.ContinuousActions[1];
 
-        // Créer le vecteur de mouvement
+        // CrÃ©er le vecteur de mouvement
         Vector3 move = new Vector3(moveX, 0, moveZ);
 
         // Appliquer le mouvement
         transform.Translate(move * Time.deltaTime * speed);
 
-        // Pénalité pour chaque pas de temps pour encourager l'efficacité
+        // PÃ©nalitÃ© pour chaque pas de temps pour encourager l'efficacitÃ©
         AddReward(-0.001f);
-
-        // Récompense de proximité avec l'objectif actuel
+        
+        // RÃ©compense de proximitÃ© avec l'objectif actuel
         if (!porteOuverte)
         {
-            // Si la porte n'est pas ouverte, récompenser la proximité avec l'interrupteur
+            // Si la porte n'est pas ouverte, rÃ©compenser la proximitÃ© avec l'interrupteur
             float distToInterrupteur = Vector3.Distance(transform.localPosition, interrupteurTransform.localPosition);
             AddReward(-0.001f * distToInterrupteur);
         }
         else
         {
-            // Si la porte est ouverte, récompenser la proximité avec la sortie
+            // Si la porte est ouverte, rÃ©compenser la proximitÃ© avec la sortie
             float distToSortie = Vector3.Distance(transform.localPosition, sortieTransform.localPosition);
             AddReward(-0.001f * distToSortie);
         }
+    }*/
+    public override void OnActionReceived(ActionBuffers actions)
+    {
+        float moveX = actions.ContinuousActions[0];
+        float moveZ = actions.ContinuousActions[1];
+
+        Vector3 move = new Vector3(moveX, 0, moveZ);
+        transform.Translate(move * Time.deltaTime * speed);
+
+        AddReward(-0.001f); // pÃ©nalitÃ© temporelle
+
+        if (!porteOuverte)
+        {
+            float dist = Vector3.Distance(transform.localPosition, interrupteurTransform.localPosition);
+
+            if (dist < lastDistanceToInterrupteur)
+            {
+                AddReward(0.003f); // se rapproche â†’ bonus
+            }
+            else
+            {
+                AddReward(-0.005f); // sâ€™Ã©loigne â†’ punition
+            }
+
+            lastDistanceToInterrupteur = dist;
+        }
+        else
+        {
+            float dist = Vector3.Distance(transform.localPosition, sortieTransform.localPosition);
+
+            if (dist < lastDistanceToSortie)
+            {
+                AddReward(0.003f); // va vers sortie
+            }
+            else
+            {
+                AddReward(-0.005f); // sâ€™en Ã©loigne
+            }
+
+            lastDistanceToSortie = dist;
+        }
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
@@ -109,14 +168,14 @@ public class EscapeRoomAgent : Agent
 
         if (other.CompareTag("free"))
         {
-            Debug.Log("Interrupteur activé");
-            // Inverser l'état de la porte
+            Debug.Log("Interrupteur activÃ©");
+            // Inverser l'Ã©tat de la porte
             porteOuverte = !porteOuverte;
             porte.SetActive(!porteOuverte);
 
             if (porteOuverte)
             {
-                AddReward(0.5f); // Récompense pour avoir ouvert la porte
+                AddReward(0.5f); // RÃ©compense pour avoir ouvert la porte
             }
         }
         else if (other.CompareTag("fin"))
@@ -124,14 +183,14 @@ public class EscapeRoomAgent : Agent
             Debug.Log("Sortie atteinte");
             if (porteOuverte)
             {
-                Debug.Log("Succès!");
-                AddReward(1f); // Succès
+                Debug.Log("SuccÃ¨s!");
+                AddReward(1f); // SuccÃ¨s
                 solRenderer.material = materielSucces;
             }
             else
             {
-                Debug.Log("Échec: porte fermée");
-                AddReward(-1f); // Tentative de sortie par porte fermée
+                Debug.Log("Ã‰chec: porte fermÃ©e");
+                AddReward(-1f); // Tentative de sortie par porte fermÃ©e
                 solRenderer.material = materielEchec;
             }
             EndEpisode();
@@ -145,8 +204,8 @@ public class EscapeRoomAgent : Agent
         }
         else if (other.CompareTag("porte") && !porteOuverte)
         {
-            Debug.Log("Collision avec porte fermée");
-            AddReward(-1f); // Collision avec la porte fermée
+            Debug.Log("Collision avec porte fermÃ©e");
+            AddReward(-1f); // Collision avec la porte fermÃ©e
             solRenderer.material = materielEchec;
             EndEpisode();
         }

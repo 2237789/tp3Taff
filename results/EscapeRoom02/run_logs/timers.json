@@ -1,0 +1,42 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1748024448",
+        "python_version": "3.10.12 | packaged by Anaconda, Inc. | (main, Jul  5 2023, 19:01:18) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\2237789\\AppData\\Local\\miniconda3\\envs\\mlagents\\Scripts\\mlagents-learn --run-id=EscapeRoom02",
+        "mlagents_version": "1.1.0",
+        "mlagents_envs_version": "1.1.0",
+        "communication_protocol_version": "1.5.0",
+        "pytorch_version": "2.2.2+cu121",
+        "numpy_version": "1.23.5",
+        "end_time_seconds": "1748024510"
+    },
+    "total": 62.500379100005375,
+    "count": 1,
+    "self": 0.0026034000038634986,
+    "children": {
+        "run_training.setup": {
+            "total": 0.1325481000021682,
+            "count": 1,
+            "self": 0.1325481000021682
+        },
+        "TrainerController.start_learning": {
+            "total": 62.36522759999934,
+            "count": 1,
+            "self": 7.419999747071415e-05,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 62.365140300003986,
+                    "count": 1,
+                    "self": 62.365140300003986
+                },
+                "TrainerController._save_models": {
+                    "total": 1.309999788645655e-05,
+                    "count": 1,
+                    "self": 1.309999788645655e-05
+                }
+            }
+        }
+    }
+}
